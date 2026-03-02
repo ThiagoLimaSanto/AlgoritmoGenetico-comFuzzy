@@ -14,7 +14,7 @@ public class AlgoritmoGenetico {
     public List<Individuo> init(List<Paciente> pacientes, int qtdQuantos) {
         List<Individuo> populacao = new ArrayList<>();
         Random random = new Random();
-        for (int i = 1; i <= 100; i++) {
+        for (int i = 1; i <= 30; i++) {
             Map<Paciente, Integer> genes = new HashMap<>();
 
             for (Paciente p : pacientes) {
@@ -46,55 +46,49 @@ public class AlgoritmoGenetico {
                 if (quartoId == 0) {
                     qtdFila++;
                 } else {
-                    ocupacao.put(quartoId,
-                            ocupacao.getOrDefault(quartoId, 0) + 1);
+                    ocupacao.put(quartoId, ocupacao.getOrDefault(quartoId, 0) + 1);
                 }
 
-                Quarto quarto = (quartoId == 0)
-                        ? null
-                        : quartos.get(quartoId - 1);
+                Quarto quarto = (quartoId == 0) ? null : quartos.get(quartoId - 1);
 
                 if (quarto == null) {
-
                     switch (paciente.getGrauDeUrgencia()) {
-                        case 3 -> penalidade += 300;
-                        case 2 -> penalidade += 150;
-                        case 1 -> penalidade += 50;
+                        case 3 -> penalidade += 700;
+                        case 2 -> penalidade += 500;
+                        case 1 -> penalidade += 100;
                     }
 
                     if (paciente.isPrecisaDeUti())
                         penalidade += 500;
-
                     if (paciente.isPrecisaDeIsolamento())
-                        penalidade += 350;
+                        penalidade += 400;
 
-                    if (paciente.getIdade() >= 60 && paciente.getIdade() <= 79)
-                        penalidade += 200;
-                    if (paciente.getIdade() > 80)
-                        penalidade += 280;
+                    if (paciente.getIdade() >= 80)
+                        penalidade += 100;
+                    else if (paciente.getIdade() >= 60)
+                        penalidade += 50;
 
                 } else {
 
                     if (paciente.getGrauDeUrgencia() > quarto.getNivelDeCuidado())
-                        penalidade += 200;
+                        penalidade += 80;
 
-                    if (paciente.isPrecisaDeUti() &&
-                            quarto.getTipoDeUrgencia() != Tipo.UTI)
-                        penalidade += 450;
-                    if (paciente.isPrecisaDeIsolamento() &&
-                            quarto.getTipoDeUrgencia() != Tipo.ISOLAMENTO)
-                        penalidade += 350;
+                    if (paciente.isPrecisaDeUti() && quarto.getTipoDeUrgencia() != Tipo.UTI)
+                        penalidade += 300;
 
-                    if (!quarto.getSexoPermitido().equals(Sexo.MISTO)
-                            && !paciente.getSexo().equals(quarto.getSexoPermitido())) {
-                        penalidade += 400;
+                    if (paciente.isPrecisaDeIsolamento() && quarto.getTipoDeUrgencia() != Tipo.ISOLAMENTO)
+                        penalidade += 250;
+
+                    if (!quarto.getSexoPermitido().equals(Sexo.MISTO) &&
+                            !paciente.getSexo().equals(quarto.getSexoPermitido())) {
+                        penalidade += 120;
                     }
 
                     if (!paciente.isPrecisaDeUti() && quarto.getTipoDeUrgencia() == Tipo.UTI)
-                        penalidade += 150;
+                        penalidade += 200;
 
                     if (!paciente.isPrecisaDeIsolamento() && quarto.getTipoDeUrgencia() == Tipo.ISOLAMENTO)
-                        penalidade += 100;
+                        penalidade += 150;
                 }
             }
 
@@ -102,10 +96,9 @@ public class AlgoritmoGenetico {
 
             for (Quarto q : quartos) {
                 int ocupados = ocupacao.getOrDefault(q.getId(), 0);
-
                 if (ocupados > q.getCapacidade()) {
                     int excesso = ocupados - q.getCapacidade();
-                    penalidade += excesso * 500;
+                    penalidade += excesso * 550;
                 }
             }
 

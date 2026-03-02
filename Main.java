@@ -9,8 +9,8 @@ public class Main {
         List<Paciente> pacientes = new ArrayList<>();
         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico();
 
-        int gerecaoAtual = 0;
-        int geracoes = 1000;
+        int geracaoAtual = 0;
+        int geracoes = 10000;
 
         // ================
         // Melhor cenario
@@ -24,7 +24,7 @@ public class Main {
 
         quartos.add(new Quarto(4, 4, Sexo.M, Tipo.NORMAL, 2));
 
-        quartos.add(new Quarto(5, 2, Sexo.MISTO, Tipo.NORMAL, 1));
+        quartos.add(new Quarto(5, 3, Sexo.MISTO, Tipo.NORMAL, 1));
 
         pacientes.add(new Paciente(1, "João", Sexo.M, 65, 3, true, false));
         pacientes.add(new Paciente(2, "Maria", Sexo.F, 72, 3, true, false));
@@ -98,17 +98,56 @@ public class Main {
 
         // pacientes.add(new Paciente(8, "Rafael", Sexo.M, 47, 1, false, false));
 
+
+        // ===============
+        // teste Massivo
+        // ===============
+
+        // quartos.add(new Quarto(1, 4, Sexo.MISTO, Tipo.UTI, 3)); // UTI Geral
+        // quartos.add(new Quarto(2, 2, Sexo.F, Tipo.UTI, 3)); // UTI Feminina
+        // quartos.add(new Quarto(3, 3, Sexo.MISTO, Tipo.ISOLAMENTO, 2)); // Isolamento Crítico
+        // quartos.add(new Quarto(4, 8, Sexo.F, Tipo.NORMAL, 1)); // Ala Feminina Leve
+        // quartos.add(new Quarto(5, 8, Sexo.M, Tipo.NORMAL, 2)); // Ala Masculina Semi-Intensiva
+        // quartos.add(new Quarto(6, 6, Sexo.MISTO, Tipo.NORMAL, 1)); // Enfermaria Geral
+        // quartos.add(new Quarto(7, 4, Sexo.MISTO, Tipo.NORMAL, 2)); // Ala de Observação
+
+        // pacientes.add(new Paciente(1, "João", Sexo.M, 85, 3, true, false)); // Prioridade Máxima (UTI + 80 anos)
+        // pacientes.add(new Paciente(2, "Maria", Sexo.F, 82, 3, true, false)); // Prioridade Máxima (UTI + 80 anos)
+        // pacientes.add(new Paciente(3, "Pedro", Sexo.M, 45, 3, true, false));
+        // pacientes.add(new Paciente(4, "Ana", Sexo.F, 30, 3, true, false));
+        // pacientes.add(new Paciente(5, "Carlos", Sexo.M, 50, 3, true, false));
+        // pacientes.add(new Paciente(6, "Zilda", Sexo.F, 75, 3, true, false));
+        // pacientes.add(new Paciente(7, "Bruno", Sexo.M, 40, 3, false, true)); // Isolamento
+        // pacientes.add(new Paciente(8, "Julia", Sexo.F, 22, 3, false, true)); // Isolamento
+        // pacientes.add(new Paciente(9, "Marcos", Sexo.M, 68, 3, false, true)); // Isolamento Idoso
+        // pacientes.add(new Paciente(10, "Heitor", Sexo.M, 12, 3, true, true)); // Caso Extremo (UTI + Isolamento)
+        // pacientes.add(new Paciente(11, "Vitor", Sexo.M, 33, 3, true, false));
+        // pacientes.add(new Paciente(12, "Lorena", Sexo.F, 29, 3, true, false));
+
+        // for (int i = 13; i <= 27; i++) {
+        //     Sexo sexo = (i % 2 == 0) ? Sexo.F : Sexo.M;
+        //     int idade = 20 + (i * 2);
+        //     pacientes.add(new Paciente(i, "P_U2_" + i, sexo, idade, 2, false, false));
+        // }
+
+        // for (int i = 28; i <= 40; i++) {
+        //     Sexo sexo = (i % 2 == 0) ? Sexo.F : Sexo.M;
+        //     pacientes.add(new Paciente(i, "P_U1_" + i, sexo, 18 + i, 1, false, false));
+        // }
+
         List<Individuo> populacao = algoritmoGenetico.init(pacientes, quartos.size());
         algoritmoGenetico.avaliarFitness(populacao, quartos);
-        while (gerecaoAtual < geracoes) {
+        while (geracaoAtual < geracoes) {
             populacao = algoritmoGenetico.cruzamentos(populacao, quartos);
             algoritmoGenetico.avaliarFitness(populacao, quartos);
             Individuo melhor = Collections.max(populacao, Comparator.comparing(Individuo::getFitness));
-            double porcentagem = (melhor.getFitness() / 10000.0) * 100.0;
-            porcentagem = Math.round(porcentagem * 100.0) / 100.0;
-            System.out.println("Geração " + gerecaoAtual + ": melhor fitness = " + porcentagem + "%");
+            if (geracaoAtual % 100 == 0) {
+                double porcentagem = (melhor.getFitness() / 10000.0) * 100.0;
+                porcentagem = Math.round(porcentagem * 100.0) / 100.0;
+                System.out.println("Geração " + geracaoAtual + ": melhor fitness = " + porcentagem + "%");
+            }
 
-            gerecaoAtual++;
+            geracaoAtual++;
         }
 
         Individuo melhor = Collections.max(populacao, Comparator.comparing(Individuo::getFitness));
