@@ -1,13 +1,13 @@
 public class Paciente {
     private int id;
     private String nome;
-    private String sexo;
+    private Sexo sexo;
     private int idade;
     private int grauDeUrgencia;
     private boolean precisaDeIsolamento;
     private boolean precisaDeUti;
 
-    public Paciente(int id, String nome, String sexo, int idade, int grauDeUrgencia, boolean precisaDeIsolamento,
+    public Paciente(int id, String nome, Sexo sexo, int idade, int grauDeUrgencia, boolean precisaDeIsolamento,
             boolean precisaDeUti) {
         this.id = id;
         this.nome = nome;
@@ -26,7 +26,7 @@ public class Paciente {
         return nome;
     }
 
-    public String getSexo() {
+    public Sexo getSexo() {
         return sexo;
     }
 

@@ -1,12 +1,12 @@
 public class Quarto {
     private int id;
     private int capacidade;
-    private String sexoPermitido;
-    private String tipoDeUrgencia;
+    private Sexo sexoPermitido;
+    private Tipo tipoDeUrgencia;
     private int nivelDeCuidado;
     private int quantidadeDePacientes;
 
-    public Quarto(int id, int capacidade, String sexoPermitido, String tipoDeUrgencia, int nivelDeCuidado) {
+    public Quarto(int id, int capacidade, Sexo sexoPermitido, Tipo tipoDeUrgencia, int nivelDeCuidado) {
         this.id = id;
         this.capacidade = capacidade;
         this.sexoPermitido = sexoPermitido;
@@ -15,7 +15,7 @@ public class Quarto {
         this.quantidadeDePacientes = 0;
     }
 
-    public Quarto(int id, int capacidade, String sexoPermitido, String tipoDeUrgencia) {
+    public Quarto(int id, int capacidade, Sexo sexoPermitido, Tipo tipoDeUrgencia) {
         this.id = id;
         this.capacidade = capacidade;
         this.sexoPermitido = sexoPermitido;
@@ -31,11 +31,11 @@ public class Quarto {
         return capacidade;
     }
 
-    public String getSexoPermitido() {
+    public Sexo getSexoPermitido() {
         return sexoPermitido;
     }
 
-    public String getTipoDeUrgencia() {
+    public Tipo getTipoDeUrgencia() {
         return tipoDeUrgencia;
     }
 

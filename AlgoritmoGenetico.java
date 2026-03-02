@@ -22,7 +22,7 @@ public class AlgoritmoGenetico {
                 genes.put(p, quarto);
             }
 
-            Individuo individuo = new Individuo(genes, 100);
+            Individuo individuo = new Individuo(genes);
             populacao.add(individuo);
         }
 
@@ -30,78 +30,86 @@ public class AlgoritmoGenetico {
     }
 
     public void avaliarFitness(List<Individuo> populacao, List<Quarto> quartos) {
+
+        int MAX_FITNESS = 10000;
+
         for (Individuo individuo : populacao) {
+
             Map<Integer, Integer> ocupacao = new HashMap<>();
-            int currentFitness = 0;
-            int qtdfila = 0;
+            int penalidade = 0;
+            int qtdFila = 0;
 
             for (Paciente paciente : individuo.getGenes().keySet()) {
+
                 Integer quartoId = individuo.getGenes().get(paciente);
 
                 if (quartoId == 0) {
-                    qtdfila++;
+                    qtdFila++;
                 } else {
-                    ocupacao.put(quartoId, ocupacao.getOrDefault(quartoId, 0) + 1);
+                    ocupacao.put(quartoId,
+                            ocupacao.getOrDefault(quartoId, 0) + 1);
                 }
 
-                Quarto quarto = quartoId == 0 ? null : quartos.get(quartoId - 1);
+                Quarto quarto = (quartoId == 0)
+                        ? null
+                        : quartos.get(quartoId - 1);
 
                 if (quarto == null) {
+
                     switch (paciente.getGrauDeUrgencia()) {
-                        case 3 -> currentFitness += 100;
-                        case 2 -> currentFitness += 50;
-                        case 1 -> currentFitness += 20;
+                        case 3 -> penalidade += 300;
+                        case 2 -> penalidade += 150;
+                        case 1 -> penalidade += 50;
                     }
+
                     if (paciente.isPrecisaDeUti())
-                        currentFitness += 100;
+                        penalidade += 500;
+
                     if (paciente.isPrecisaDeIsolamento())
-                        currentFitness += 50;
+                        penalidade += 350;
+
+                    if (paciente.getIdade() >= 60 && paciente.getIdade() <= 79)
+                        penalidade += 200;
+                    if (paciente.getIdade() > 80)
+                        penalidade += 280;
 
                 } else {
-                    int urgencia = paciente.getGrauDeUrgencia();
-                    int cuidado = quarto.getNivelDeCuidado();
 
-                    if (urgencia > cuidado)
-                        currentFitness += 50;
-                    else if (urgencia < cuidado)
-                        currentFitness += 20;
-                    else
-                        currentFitness -= 10;
+                    if (paciente.getGrauDeUrgencia() > quarto.getNivelDeCuidado())
+                        penalidade += 200;
 
-                    if (paciente.isPrecisaDeIsolamento()) {
-                        if (!quarto.getTipoDeUrgencia().equals("ISOLAMENTO"))
-                            currentFitness += 40;
-                        else
-                            currentFitness -= 50;
+                    if (paciente.isPrecisaDeUti() &&
+                            quarto.getTipoDeUrgencia() != Tipo.UTI)
+                        penalidade += 450;
+                    if (paciente.isPrecisaDeIsolamento() &&
+                            quarto.getTipoDeUrgencia() != Tipo.ISOLAMENTO)
+                        penalidade += 350;
+
+                    if (!quarto.getSexoPermitido().equals(Sexo.MISTO)
+                            && !paciente.getSexo().equals(quarto.getSexoPermitido())) {
+                        penalidade += 400;
                     }
 
-                    if (paciente.isPrecisaDeUti()) {
-                        if (!quarto.getTipoDeUrgencia().equals("UTI"))
-                            currentFitness += 100;
-                        else
-                            currentFitness -= 30;
-                    }
+                    if (!paciente.isPrecisaDeUti() && quarto.getTipoDeUrgencia() == Tipo.UTI)
+                        penalidade += 150;
 
-                    if (!paciente.isPrecisaDeUti() && quarto.getTipoDeUrgencia().equals("UTI"))
-                        currentFitness += 10;
-                    if (!paciente.isPrecisaDeIsolamento() && quarto.getTipoDeUrgencia().equals("ISOLAMENTO"))
-                        currentFitness += 10;
+                    if (!paciente.isPrecisaDeIsolamento() && quarto.getTipoDeUrgencia() == Tipo.ISOLAMENTO)
+                        penalidade += 100;
                 }
             }
 
-            if (qtdfila > 0) {
-                currentFitness += qtdfila * 10;
-            }
+            penalidade += qtdFila * 20;
 
             for (Quarto q : quartos) {
                 int ocupados = ocupacao.getOrDefault(q.getId(), 0);
+
                 if (ocupados > q.getCapacidade()) {
                     int excesso = ocupados - q.getCapacidade();
-                    currentFitness += excesso * 25;
+                    penalidade += excesso * 500;
                 }
             }
 
-            individuo.setFitness(Math.max(1, 1000 - currentFitness));
+            individuo.setFitness(Math.max(1, MAX_FITNESS - penalidade));
         }
     }
 
@@ -121,7 +129,7 @@ public class AlgoritmoGenetico {
             } while (pai1 == pai2);
 
             if (aleatorio < 0.8) {
-                filho = crossover(pai1, pai2, quartos);
+                filho = crossover(pai1, pai2);
             } else if (aleatorio < 0.9) {
                 filho = new Individuo(pai1);
             } else {
@@ -142,8 +150,6 @@ public class AlgoritmoGenetico {
         Individuo a = populacao.get(random.nextInt(populacao.size()));
         Individuo b = populacao.get(random.nextInt(populacao.size()));
         Individuo c = populacao.get(random.nextInt(populacao.size()));
-        Individuo d = populacao.get(random.nextInt(populacao.size()));
-        Individuo e = populacao.get(random.nextInt(populacao.size()));
 
         Individuo melhor = a;
 
@@ -151,106 +157,90 @@ public class AlgoritmoGenetico {
             melhor = b;
         if (c.getFitness() > melhor.getFitness())
             melhor = c;
-        if (d.getFitness() > melhor.getFitness())
-            melhor = d;
-        if (e.getFitness() > melhor.getFitness())
-            melhor = e;
 
         return melhor;
     }
 
     private void mutacao(Individuo individuo, List<Quarto> quartos) {
         Random random = new Random();
-
-        double taxaMutacao = 0.05;
+        double taxaMutacao = 0.1; // 10% é bom
 
         for (Paciente p : individuo.getGenes().keySet()) {
             if (random.nextDouble() < taxaMutacao) {
-                List<Integer> quartoPossiveis = new ArrayList<>();
-                quartoPossiveis.add(0);
-                for (Quarto quarto : quartos) {
-                    quartoPossiveis.add(quarto.getId());
-                }
-                int novoQuarto = quartoPossiveis.get(random.nextInt(quartoPossiveis.size()));
+                int novoQuarto = random.nextInt(quartos.size() + 1);
                 individuo.getGenes().put(p, novoQuarto);
             }
         }
     }
 
-    private Individuo crossover(Individuo pai1, Individuo pai2, List<Quarto> quartos) {
+    private Individuo crossover(Individuo pai1, Individuo pai2) {
         Individuo filho = new Individuo();
+        Random random = new Random();
 
-        for (Paciente p : pai1.getGenes().keySet()) {
-            int quartoDoPai1 = pai1.getGenes().get(p);
-            int quartoDoPai2 = pai2.getGenes().get(p);
+        List<Paciente> pacientes = new ArrayList<>(pai1.getGenes().keySet());
+        pacientes.sort(Comparator.comparingInt(Paciente::getId));
 
-            if (quartoDoPai1 == quartoDoPai2) {
-                filho.getGenes().put(p, quartoDoPai1);
+        int ponto1 = random.nextInt(pacientes.size());
+        int ponto2 = random.nextInt(pacientes.size());
+
+        if (ponto1 > ponto2) {
+            int temp = ponto1;
+            ponto1 = ponto2;
+            ponto2 = temp;
+        }
+
+        for (int i = 0; i < pacientes.size(); i++) {
+
+            Paciente p = pacientes.get(i);
+
+            if (i >= ponto1 && i <= ponto2) {
+                filho.getGenes().put(p, pai1.getGenes().get(p));
             } else {
-                int grau = p.getGrauDeUrgencia();
-                boolean precisaDeUti = p.isPrecisaDeUti();
-                boolean precisaDeIsolamento = p.isPrecisaDeIsolamento();
-
-                if (grau == 3 || precisaDeIsolamento || precisaDeUti) {
-                    int melhorQuarto = fitnessGene(pai1, p, quartos) > fitnessGene(pai2, p, quartos) ? quartoDoPai1
-                            : quartoDoPai2;
-
-                    if (Math.random() < 0.5) {
-                        filho.getGenes().put(p, melhorQuarto);
-                    } else {
-                        filho.getGenes().put(p, melhorQuarto == quartoDoPai2 ? quartoDoPai1 : quartoDoPai2);
-                    }
-                } else {
-                    filho.getGenes().put(p, Math.random() < 0.5 ? quartoDoPai1 : quartoDoPai2);
-                }
+                filho.getGenes().put(p, pai2.getGenes().get(p));
             }
         }
-        return new Individuo(filho);
-    }
 
-    private int fitnessGene(Individuo pai1, Paciente paciente, List<Quarto> quartos) {
-        int quartoId = pai1.getGenes().get(paciente);
-        int score = 0;
-        if (quartoId == 0) {
-            return 0;
-        }
-        Quarto quarto = quartos.get(quartoId - 1);
-
-        if (paciente.isPrecisaDeUti() && quarto.getTipoDeUrgencia().equals("UTI")) {
-            score += 50;
-        }
-        if (paciente.isPrecisaDeIsolamento() && quarto.getTipoDeUrgencia().equals("ISOLAMENTO")) {
-            score += 30;
-        }
-
-        score += paciente.getGrauDeUrgencia() * 10;
-        return score;
+        return filho;
     }
 
     public void imprimirAlocacao(Individuo individuo, List<Quarto> quartos) {
+
         System.out.println("=== Alocação do Individuo ===");
         System.out.printf("%-10s %-6s %-12s %-8s %-10s %-10s%n",
                 "Paciente", "Idade", "Sexo", "Urgência", "UTI", "Isolamento");
 
-        for (Paciente paciente : individuo.getGenes().keySet()) {
-            Integer quartoId = individuo.getGenes().get(paciente);
-            String local;
+        individuo.getGenes().keySet().stream()
+                .sorted(Comparator.comparingInt(Paciente::getId))
+                .forEach(paciente -> {
 
-            if (quartoId == 0) {
-                local = "Fila";
-            } else {
-                Quarto quarto = quartos.get(quartoId - 1);
-                local = "Quarto " + quarto.getId() + " (" + quarto.getTipoDeUrgencia() + ")";
-            }
+                    Integer quartoId = individuo.getGenes().get(paciente);
+                    String local;
 
-            System.out.printf("%-10s %-6d %-12s %-8d %-10s %-10s -> %s%n",
-                    paciente.getNome(),
-                    paciente.getIdade(),
-                    paciente.getSexo(),
-                    paciente.getGrauDeUrgencia(),
-                    paciente.isPrecisaDeUti() ? "Sim" : "Não",
-                    paciente.isPrecisaDeIsolamento() ? "Sim" : "Não",
-                    local);
-        }
+                    if (quartoId == 0) {
+                        local = "Fila";
+                    } else {
+
+                        Quarto quarto = quartos.stream()
+                                .filter(q -> q.getId() == quartoId)
+                                .findFirst()
+                                .orElse(null);
+
+                        if (quarto == null) {
+                            local = "Quarto não encontrado";
+                        } else {
+                            local = "Quarto " + quarto.getId() +
+                                    " (" + quarto.getTipoDeUrgencia() + ")";
+                        }
+                    }
+
+                    System.out.printf("%-10s %-6d %-12s %-8d %-10s %-10s -> %s%n",
+                            paciente.getNome(),
+                            paciente.getIdade(),
+                            paciente.getSexo(),
+                            paciente.getGrauDeUrgencia(),
+                            paciente.isPrecisaDeUti() ? "Sim" : "Não",
+                            paciente.isPrecisaDeIsolamento() ? "Sim" : "Não",
+                            local);
+                });
     }
 }
