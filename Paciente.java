@@ -1,21 +1,26 @@
 public class Paciente {
     private int id;
     private String nome;
-    private Sexo sexo;
     private int idade;
-    private int grauDeUrgencia;
-    private boolean precisaDeIsolamento;
-    private boolean precisaDeUti;
+    private Sexo sexo;
+    private double dor;
+    private double febre;
+    private double dificuldadeRespiratoria;
+    private double riscoContagio;
+    private double urgenciaFinalFuzzy;
+    private double necessidadeSuporte;
+    private double necessidadeIsolamento;
 
-    public Paciente(int id, String nome, Sexo sexo, int idade, int grauDeUrgencia, boolean precisaDeIsolamento,
-            boolean precisaDeUti) {
+    public Paciente(int id, String nome, int idade, Sexo sexo, double dor, double febre, double respira,
+            double contagio) {
         this.id = id;
         this.nome = nome;
-        this.sexo = sexo;
         this.idade = idade;
-        this.grauDeUrgencia = grauDeUrgencia;
-        this.precisaDeIsolamento = precisaDeIsolamento;
-        this.precisaDeUti = precisaDeUti;
+        this.sexo = sexo;
+        this.dor = dor;
+        this.febre = febre;
+        this.dificuldadeRespiratoria = respira;
+        this.riscoContagio = contagio;
     }
 
     public int getId() {
@@ -26,30 +31,52 @@ public class Paciente {
         return nome;
     }
 
-    public Sexo getSexo() {
-        return sexo;
-    }
-
     public int getIdade() {
         return idade;
     }
 
-    public int getGrauDeUrgencia() {
-        return grauDeUrgencia;
+    public Sexo getSexo() {
+        return sexo;
     }
 
-    public boolean isPrecisaDeIsolamento() {
-        return precisaDeIsolamento;
+    public double getDor() {
+        return dor;
     }
 
-    public boolean isPrecisaDeUti() {
-        return precisaDeUti;
+    public double getFebre() {
+        return febre;
     }
 
-    @Override
-    public String toString() {
-        return "Paciente{" + "id=" + id + ", nome='" + nome + '\'' + ", sexo='" + sexo + '\'' + ", idade=" + idade
-                + ", grauDeUrgencia=" + grauDeUrgencia + ", precisaDeIsolamento=" + precisaDeIsolamento
-                + ", precisaDeUti=" + precisaDeUti + '}';
+    public double getDificuldadeRespiratoria() {
+        return dificuldadeRespiratoria;
     }
+
+    public double getRiscoContagio() {
+        return riscoContagio;
+    }
+
+    public double getUrgenciaFinalFuzzy() {
+        return urgenciaFinalFuzzy;
+    }
+
+    public double getNecessidadeSuporte() {
+        return necessidadeSuporte;
+    }
+
+    public double getNecessidadeIsolamento() {
+        return necessidadeIsolamento;
+    }
+
+    public void setUrgenciaFinalFuzzy(double urgenciaFinalFuzzy) {
+        this.urgenciaFinalFuzzy = urgenciaFinalFuzzy;
+    }
+
+    public void setNecessidadeSuporte(double necessidadeSuporte) {
+        this.necessidadeSuporte = necessidadeSuporte;
+    }
+
+    public void setNecessidadeIsolamento(double necessidadeIsolamento) {
+        this.necessidadeIsolamento = necessidadeIsolamento;
+    }
+
 }

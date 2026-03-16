@@ -2,25 +2,18 @@ public class Quarto {
     private int id;
     private int capacidade;
     private Sexo sexoPermitido;
-    private Tipo tipoDeUrgencia;
-    private int nivelDeCuidado;
-    private int quantidadeDePacientes;
+    private double nivelDeCuidado;
+    private double nivelSuporte;
+    private double nivelIsolamento;
 
-    public Quarto(int id, int capacidade, Sexo sexoPermitido, Tipo tipoDeUrgencia, int nivelDeCuidado) {
+    public Quarto(int id, int capacidade, Sexo sexoPermitido, double nivelDeCuidado, double nivelSuporte,
+            double nivelIsolamento) {
         this.id = id;
         this.capacidade = capacidade;
         this.sexoPermitido = sexoPermitido;
-        this.tipoDeUrgencia = tipoDeUrgencia;
         this.nivelDeCuidado = nivelDeCuidado;
-        this.quantidadeDePacientes = 0;
-    }
-
-    public Quarto(int id, int capacidade, Sexo sexoPermitido, Tipo tipoDeUrgencia) {
-        this.id = id;
-        this.capacidade = capacidade;
-        this.sexoPermitido = sexoPermitido;
-        this.tipoDeUrgencia = tipoDeUrgencia;
-        this.quantidadeDePacientes = 0;
+        this.nivelSuporte = nivelSuporte;
+        this.nivelIsolamento = nivelIsolamento;
     }
 
     public int getId() {
@@ -35,19 +28,15 @@ public class Quarto {
         return sexoPermitido;
     }
 
-    public Tipo getTipoDeUrgencia() {
-        return tipoDeUrgencia;
-    }
-
-    public int getNivelDeCuidado() {
+    public double getNivelDeCuidado() {
         return nivelDeCuidado;
     }
 
-    public int getQuantidadeDePacientes() {
-        return quantidadeDePacientes;
+    public double getNivelSuporte() {
+        return nivelSuporte;
     }
 
-    public void setQuantidadeDePacientes(int quantidadeDePacientes) {
-        this.quantidadeDePacientes = quantidadeDePacientes;
+    public double getNivelIsolamento() {
+        return nivelIsolamento;
     }
 }

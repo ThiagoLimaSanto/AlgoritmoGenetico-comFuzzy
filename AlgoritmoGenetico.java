@@ -11,98 +11,49 @@ public class AlgoritmoGenetico {
     public AlgoritmoGenetico() {
     }
 
-    public List<Individuo> init(List<Paciente> pacientes, int qtdQuantos) {
+    public List<Individuo> init(List<Paciente> pacientes, int qtdQuartos) {
         List<Individuo> populacao = new ArrayList<>();
         Random random = new Random();
-        for (int i = 1; i <= 30; i++) {
+        for (int i = 0; i < 300; i++) {
             Map<Paciente, Integer> genes = new HashMap<>();
-
             for (Paciente p : pacientes) {
-                int quarto = random.nextInt(qtdQuantos);
+                int quarto = random.nextInt(qtdQuartos + 1);
                 genes.put(p, quarto);
             }
-
-            Individuo individuo = new Individuo(genes);
-            populacao.add(individuo);
+            populacao.add(new Individuo(genes));
         }
-
         return populacao;
     }
 
     public void avaliarFitness(List<Individuo> populacao, List<Quarto> quartos) {
-
-        int MAX_FITNESS = 10000;
+        Fuzzy fuzzy = new Fuzzy();
 
         for (Individuo individuo : populacao) {
-
+            double fitnessTotal = 0;
             Map<Integer, Integer> ocupacao = new HashMap<>();
-            int penalidade = 0;
-            int qtdFila = 0;
 
-            for (Paciente paciente : individuo.getGenes().keySet()) {
-
-                Integer quartoId = individuo.getGenes().get(paciente);
-
-                if (quartoId == 0) {
-                    qtdFila++;
-                } else {
+            for (Integer quartoId : individuo.getGenes().values()) {
+                if (quartoId != 0) {
                     ocupacao.put(quartoId, ocupacao.getOrDefault(quartoId, 0) + 1);
                 }
+            }
 
-                Quarto quarto = (quartoId == 0) ? null : quartos.get(quartoId - 1);
+            // Passo 2: Calcular adequação de cada paciente (gene)
+            for (Map.Entry<Paciente, Integer> entry : individuo.getGenes().entrySet()) {
+                Paciente paciente = entry.getKey();
+                Integer quartoId = entry.getValue();
 
-                if (quarto == null) {
-                    switch (paciente.getGrauDeUrgencia()) {
-                        case 3 -> penalidade += 700;
-                        case 2 -> penalidade += 500;
-                        case 1 -> penalidade += 100;
-                    }
-
-                    if (paciente.isPrecisaDeUti())
-                        penalidade += 500;
-                    if (paciente.isPrecisaDeIsolamento())
-                        penalidade += 400;
-
-                    if (paciente.getIdade() >= 80)
-                        penalidade += 100;
-                    else if (paciente.getIdade() >= 60)
-                        penalidade += 50;
-
+                double adequacao;
+                if (quartoId == 0) {
+                    adequacao = fuzzy.calcularFuzzy(paciente, null, 0);
                 } else {
-
-                    if (paciente.getGrauDeUrgencia() > quarto.getNivelDeCuidado())
-                        penalidade += 80;
-
-                    if (paciente.isPrecisaDeUti() && quarto.getTipoDeUrgencia() != Tipo.UTI)
-                        penalidade += 300;
-
-                    if (paciente.isPrecisaDeIsolamento() && quarto.getTipoDeUrgencia() != Tipo.ISOLAMENTO)
-                        penalidade += 250;
-
-                    if (!quarto.getSexoPermitido().equals(Sexo.MISTO) &&
-                            !paciente.getSexo().equals(quarto.getSexoPermitido())) {
-                        penalidade += 120;
-                    }
-
-                    if (!paciente.isPrecisaDeUti() && quarto.getTipoDeUrgencia() == Tipo.UTI)
-                        penalidade += 200;
-
-                    if (!paciente.isPrecisaDeIsolamento() && quarto.getTipoDeUrgencia() == Tipo.ISOLAMENTO)
-                        penalidade += 150;
+                    Quarto quarto = quartos.get(quartoId - 1);
+                    int ocupacaoAtual = ocupacao.getOrDefault(quartoId, 0);
+                    adequacao = fuzzy.calcularFuzzy(paciente, quarto, ocupacaoAtual);
                 }
+                fitnessTotal += adequacao;
             }
-
-            penalidade += qtdFila * 20;
-
-            for (Quarto q : quartos) {
-                int ocupados = ocupacao.getOrDefault(q.getId(), 0);
-                if (ocupados > q.getCapacidade()) {
-                    int excesso = ocupados - q.getCapacidade();
-                    penalidade += excesso * 550;
-                }
-            }
-
-            individuo.setFitness(Math.max(1, MAX_FITNESS - penalidade));
+            individuo.setFitness(fitnessTotal);
         }
     }
 
@@ -114,50 +65,40 @@ public class AlgoritmoGenetico {
         while (novaPopulacao.size() < populacao.size()) {
             Individuo pai1 = selecaoTorneio(populacao);
             Individuo pai2;
-            Individuo filho;
-            double aleatorio = Math.random();
-
             do {
                 pai2 = selecaoTorneio(populacao);
             } while (pai1 == pai2);
 
-            if (aleatorio < 0.8) {
+            Individuo filho;
+            double rand = Math.random();
+            if (rand < 0.8) {
                 filho = crossover(pai1, pai2);
-            } else if (aleatorio < 0.9) {
-                filho = new Individuo(pai1);
             } else {
-                filho = new Individuo(pai2);
+                filho = new Individuo(rand < 0.9 ? pai1 : pai2);
             }
 
             mutacao(filho, quartos);
-
             novaPopulacao.add(filho);
         }
-
         return novaPopulacao;
     }
 
     private Individuo selecaoTorneio(List<Individuo> populacao) {
         Random random = new Random();
+        Individuo melhor = null;
 
-        Individuo a = populacao.get(random.nextInt(populacao.size()));
-        Individuo b = populacao.get(random.nextInt(populacao.size()));
-        Individuo c = populacao.get(random.nextInt(populacao.size()));
-
-        Individuo melhor = a;
-
-        if (b.getFitness() > melhor.getFitness())
-            melhor = b;
-        if (c.getFitness() > melhor.getFitness())
-            melhor = c;
-
+        for (int i = 0; i < 10; i++) {
+            Individuo competidor = populacao.get(random.nextInt(populacao.size()));
+            if (melhor == null || competidor.getFitness() > melhor.getFitness()) {
+                melhor = competidor;
+            }
+        }
         return melhor;
     }
 
     private void mutacao(Individuo individuo, List<Quarto> quartos) {
         Random random = new Random();
-        double taxaMutacao = 0.1; // 10% é bom
-
+        double taxaMutacao = 0.1;
         for (Paciente p : individuo.getGenes().keySet()) {
             if (random.nextDouble() < taxaMutacao) {
                 int novoQuarto = random.nextInt(quartos.size() + 1);
@@ -169,71 +110,73 @@ public class AlgoritmoGenetico {
     private Individuo crossover(Individuo pai1, Individuo pai2) {
         Individuo filho = new Individuo();
         Random random = new Random();
-
-        List<Paciente> pacientes = new ArrayList<>(pai1.getGenes().keySet());
-        pacientes.sort(Comparator.comparingInt(Paciente::getId));
-
-        int ponto1 = random.nextInt(pacientes.size());
-        int ponto2 = random.nextInt(pacientes.size());
-
-        if (ponto1 > ponto2) {
-            int temp = ponto1;
-            ponto1 = ponto2;
-            ponto2 = temp;
-        }
-
-        for (int i = 0; i < pacientes.size(); i++) {
-
-            Paciente p = pacientes.get(i);
-
-            if (i >= ponto1 && i <= ponto2) {
+        for (Paciente p : pai1.getGenes().keySet()) {
+            if (random.nextBoolean()) {
                 filho.getGenes().put(p, pai1.getGenes().get(p));
             } else {
                 filho.getGenes().put(p, pai2.getGenes().get(p));
             }
         }
-
         return filho;
     }
 
     public void imprimirAlocacao(Individuo individuo, List<Quarto> quartos) {
+        Fuzzy fuzzy = new Fuzzy();
 
-        System.out.println("=== Alocação do Individuo ===");
-        System.out.printf("%-10s %-6s %-12s %-8s %-10s %-10s%n",
-                "Paciente", "Idade", "Sexo", "Urgência", "UTI", "Isolamento");
+        System.out.println("\n" + "=".repeat(145));
+        System.out.println(
+                "                                     RELATÓRIO HOSPITALAR DE ALOCAÇÃO INTELIGENTE (SINTOMAS -> FUZZY -> AG)");
+        System.out.println("=".repeat(145));
 
-        individuo.getGenes().keySet().stream()
-                .sorted(Comparator.comparingInt(Paciente::getId))
-                .forEach(paciente -> {
+        System.out.printf("%-10s | %-4s | %-12s | %-5s | %-5s | %-5s | %-5s | %-10s | %-8s | %-8s | %-30s | %-6s%n",
+                "PACIENTE", "IDD", "ANAMNESE", "DOR", "FEB", "RESP", "CONT", "URG.FUZZY", "SUP.NEC", "ISO.NEC",
+                "DESTINO FINAL", "FIT");
+        System.out.println("-".repeat(145));
 
-                    Integer quartoId = individuo.getGenes().get(paciente);
-                    String local;
+        Map<Integer, Integer> ocupacao = new HashMap<>();
+        individuo.getGenes().values().forEach(id -> {
+            if (id != 0)
+                ocupacao.put(id, ocupacao.getOrDefault(id, 0) + 1);
+        });
+
+        individuo.getGenes().entrySet().stream()
+                .sorted(Comparator.comparingInt(e -> e.getKey().getId()))
+                .forEach(entry -> {
+                    Paciente p = entry.getKey();
+                    Integer quartoId = entry.getValue();
+                    String destinoInfo;
+                    double fitnessIndividual;
 
                     if (quartoId == 0) {
-                        local = "Fila";
+                        destinoInfo = "FILA DE ESPERA";
+                        fitnessIndividual = fuzzy.calcularFuzzy(p, null, 0);
                     } else {
-
-                        Quarto quarto = quartos.stream()
-                                .filter(q -> q.getId() == quartoId)
-                                .findFirst()
-                                .orElse(null);
-
-                        if (quarto == null) {
-                            local = "Quarto não encontrado";
-                        } else {
-                            local = "Quarto " + quarto.getId() +
-                                    " (" + quarto.getTipoDeUrgencia() + ")";
-                        }
+                        Quarto q = quartos.get(quartoId - 1);
+                        int lotacao = ocupacao.getOrDefault(quartoId, 0);
+                        destinoInfo = String.format("Quarto %d (Cuidado %.0f)", q.getId(), q.getNivelDeCuidado());
+                        fitnessIndividual = fuzzy.calcularFuzzy(p, q, lotacao);
                     }
 
-                    System.out.printf("%-10s %-6d %-12s %-8d %-10s %-10s -> %s%n",
-                            paciente.getNome(),
-                            paciente.getIdade(),
-                            paciente.getSexo(),
-                            paciente.getGrauDeUrgencia(),
-                            paciente.isPrecisaDeUti() ? "Sim" : "Não",
-                            paciente.isPrecisaDeIsolamento() ? "Sim" : "Não",
-                            local);
+                    System.out.printf(
+                            "%-10s | %-4d | %-12s | %-5.0f | %-5.1f | %-5.0f | %-5.0f | %-10.1f | %-8.0f | %-8.0f | %-30s | %-6.2f%n",
+                            p.getNome().toUpperCase(),
+                            p.getIdade(),
+                            p.getSexo(),
+                            p.getDor(),
+                            p.getFebre(),
+                            p.getDificuldadeRespiratoria(),
+                            p.getRiscoContagio(),
+                            p.getUrgenciaFinalFuzzy(),
+                            p.getNecessidadeSuporte(),
+                            p.getNecessidadeIsolamento(),
+                            destinoInfo,
+                            fitnessIndividual);
                 });
+
+        System.out.println("-".repeat(145));
+        double fitnessTotal = (individuo.getFitness() / individuo.getGenes().size()) * 100.0;
+        System.out.printf("EFICIÊNCIA GERAL DA ALOCAÇÃO: %.2f%% | Total de Pacientes: %d%n",
+                fitnessTotal, individuo.getGenes().size());
+        System.out.println("=".repeat(145) + "\n");
     }
 }
