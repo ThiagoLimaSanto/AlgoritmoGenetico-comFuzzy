@@ -10,7 +10,7 @@ public class Main {
         AlgoritmoGenetico algoritmoGenetico = new AlgoritmoGenetico();
 
         int geracaoAtual = 0;
-        int geracoes = 3000;
+        int geracoes = 1000;
 
         // ==========================================
         // Melhor cenario
@@ -89,7 +89,8 @@ public class Main {
 
         // pacientes.add(new Paciente(1, "Joao", 65, Sexo.M, 20.0, 38.5, 95.0, 0.0));
         // pacientes.add(new Paciente(2, "Maria", 72, Sexo.F, 10.0, 39.0, 90.0, 10.0));
-        // pacientes.add(new Paciente(3, "Carlos", 58, Sexo.M, 80.0, 39.5, 20.0, 100.0));
+        // pacientes.add(new Paciente(3, "Carlos", 58, Sexo.M, 80.0, 39.5, 20.0,
+        // 100.0));
         // pacientes.add(new Paciente(4, "Patricia", 36, Sexo.F, 40.0, 37.0, 5.0, 0.0));
         // pacientes.add(new Paciente(5, "Bruno", 40, Sexo.M, 50.0, 38.0, 10.0, 0.0));
         // pacientes.add(new Paciente(6, "Camila", 26, Sexo.F, 30.0, 37.2, 10.0, 5.0));

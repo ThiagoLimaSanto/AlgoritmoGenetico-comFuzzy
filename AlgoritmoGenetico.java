@@ -14,7 +14,7 @@ public class AlgoritmoGenetico {
     public List<Individuo> init(List<Paciente> pacientes, int qtdQuartos) {
         List<Individuo> populacao = new ArrayList<>();
         Random random = new Random();
-        for (int i = 0; i < 300; i++) {
+        for (int i = 0; i <100; i++) {
             Map<Paciente, Integer> genes = new HashMap<>();
             for (Paciente p : pacientes) {
                 int quarto = random.nextInt(qtdQuartos + 1);
